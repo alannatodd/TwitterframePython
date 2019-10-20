@@ -14,7 +14,7 @@ api = twitter.Api(consumer_key=os.getenv('CON_KEY'),
 def get_tweets(api=None, screen_name=None):
     listLen = 0
     pullCount = 20
-    checkTimeline = api.GetUserTimeline(screen_name=screen_name, count=pullCount)
+    checkTimeline = api.GetUserTimeline(screen_name=screen_name, count=200)
     if (len(checkTimeline) == 0):
         return ["Error: This user has not tweeted"]
     else:
@@ -28,7 +28,11 @@ def get_tweets(api=None, screen_name=None):
                     cleanedTimeline.append(parsedLine)
                 return cleanedTimeline
             else:
-                pullCount += 20
+                if len(checkTimeline) < pullCount:
+                    return ["Error: User does not have eligible tweets"]
+                else:
+                    print pullCount
+                    pullCount += 20
     #earliest_tweet = min(timeline, key=lambda x: x.id).id
     #print("getting tweets before:", earliest_tweet)
         #print(parsedLine)
@@ -63,4 +67,3 @@ if __name__ == "__main__":
         for tweet in cleanedTimeline:
             #print(tweet)
             f.write(tweet)
-        #    f.write('\n')
