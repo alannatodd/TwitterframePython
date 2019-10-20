@@ -64,6 +64,4 @@ if __name__ == "__main__":
 
     with open('testfiles/timeline.txt', 'w+') as f:
         #f.write(timeline)
-        for tweet in cleanedTimeline:
-            #print(tweet)
-            f.write(tweet)
+        f.write(cleanedTimeline[0])
