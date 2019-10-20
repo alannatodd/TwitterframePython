@@ -63,4 +63,3 @@ if __name__ == "__main__":
         for tweet in cleanedTimeline:
             #print(tweet)
             f.write(tweet)
-        #    f.write('\n')
