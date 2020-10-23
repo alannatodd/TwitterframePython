@@ -11,17 +11,22 @@ api = twitter.Api(consumer_key=os.getenv('CON_KEY'),
                   access_token_secret=os.getenv('ACCESS_SECRET'))
 
 
-def get_tweets(api=None, screen_name=None):
+def get_tweets(api=None, screen_name=None, howManyTweets=None):
     listLen = 0
-    pullCount = 1
+    pullCount = howManyTweets
     try:
         checkUserExists = api.GetUser(screen_name=screen_name,return_json=True)
-    except twitter.error.TwitterError:
-        print('No user with this screenname')
-        return ["Error: No user with this screenname"]
-    checkTimeline = api.GetUserTimeline(screen_name=screen_name, count=200)
+    except twitter.error.TwitterError as err:
+        return ["Error: " + parseTwitterError(err)]
+
+    checkTimeline = ''
+    try:
+        checkTimeline = api.GetUserTimeline(screen_name=screen_name, count=200)
+    except twitter.error.TwitterError as err:
+        return ["Error: " + parseTwitterError(err)]
+
     if (len(checkTimeline) == 0):
-        return ["Error: This user has not tweeted"]
+        return ["Error: This user has no tweets."]
     else:
         while listLen == 0:
             timeline = api.GetUserTimeline(screen_name=screen_name, count=pullCount, include_rts=False, exclude_replies=True)
@@ -33,11 +38,8 @@ def get_tweets(api=None, screen_name=None):
                     cleanedTimeline.append(parsedLine)
                 return cleanedTimeline
             else:
-                if len(checkTimeline) < pullCount:
-                    return ["Error: User does not have eligible tweets"]
-                else:
-                    print pullCount
-                    pullCount += 20
+                return ["Error: User has no original tweets."]
+
     #earliest_tweet = min(timeline, key=lambda x: x.id).id
     #print("getting tweets before:", earliest_tweet)
         #print(parsedLine)
@@ -56,6 +58,9 @@ def get_tweets(api=None, screen_name=None):
 
     #return cleanedTimeline
 
+def parseTwitterError(twitterError=None):
+    errorDict = twitterError.message[0]
+    return errorDict.get('message')
 
 if __name__ == "__main__":
     api = twitter.Api(consumer_key=os.getenv('CON_KEY'),
@@ -66,11 +71,13 @@ if __name__ == "__main__":
     if not screen_name.startswith('@'):
         screen_name = "@" + screen_name
     print("Getting latest tweet from " + screen_name + "...\n")
-    cleanedTimeline = get_tweets(api=api, screen_name=screen_name)
+    cleanedTimeline = get_tweets(api=api, screen_name=screen_name, howManyTweets=1)
 
 
     with open('testfiles/timeline.txt', 'w+') as f:
         #f.write(timeline)
-        f.write(cleanedTimeline[0])
+        for tweet in cleanedTimeline:
+            f.write(tweet)
 
-    print(cleanedTimeline[0])
+    for tweet in cleanedTimeline:
+        print(tweet)
