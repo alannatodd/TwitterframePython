@@ -13,7 +13,6 @@ api = twitter.Api(consumer_key=os.getenv('CON_KEY'),
 
 def get_tweets(api=None, screen_name=None, how_many_tweets=None):
     list_len = 0
-    pull_count = how_many_tweets
     try:
         check_user_exists = api.GetUser(screen_name=screen_name,return_json=True)
     except twitter.error.TwitterError as err:
@@ -29,7 +28,7 @@ def get_tweets(api=None, screen_name=None, how_many_tweets=None):
         return ["Error: This user has no tweets."]
     else:
         while list_len == 0:
-            timeline = api.GetUserTimeline(screen_name=screen_name, count=pull_count, include_rts=False, exclude_replies=True)
+            timeline = api.GetUserTimeline(screen_name=screen_name, count=how_many_tweets, include_rts=False, exclude_replies=True)
             list_len = len(timeline)
             if list_len > 0:
                 cleaned_timeline = []
