@@ -28,20 +28,48 @@ def get_tweets(api=None, screen_name=None, how_many_tweets=None):
         return ["Error: This user has no tweets."]
     else:
         while list_len == 0:
-            timeline = api.GetUserTimeline(screen_name=screen_name, count=how_many_tweets, include_rts=False, exclude_replies=True)
-            list_len = len(timeline)
-            if list_len > 0:
-                cleaned_timeline = []
-                for tweet in timeline:
-                    parsed_line = ('{screenname}: {text}\n\n <3 {favorites}   {time}\n\n\n'.format(screenname=screen_name.encode('utf-8'), text=tweet.text.encode('utf-8'), favorites=tweet.favorite_count, time=tweet.created_at))
-                    cleaned_timeline.append(parsed_line)
-                return cleaned_timeline
+            timeline = None
+            try:
+                timeline = api.GetUserTimeline(screen_name=screen_name, count=how_many_tweets, include_rts=False, exclude_replies=True)
+            except twitter.error.TwitterError as err:
+                return ["Error: " + parse_twitter_error(err)]
+
+            if len(timeline) > 0:
+                return clean_timeline(timeline)
             else:
-                return ["Error: User has no original tweets."]
+                print("User has no original tweets\n")
+                
+                retweets = None
+                try:
+                    retweets = api.GetUserTimeline(screen_name=screen_name, count=how_many_tweets, include_rts=True, exclude_replies=True)
+                except twitter.error.TwitterError as err:
+                    return ["Error: " + parse_twitter_error(err)]
+
+                if len(retweets) > 0:
+                    return clean_timeline(retweets)
+                else:
+                    print("User has not retweeted\n")
+
+                    replies = None 
+                    try:
+                        replies = api.GetUserTimeline(screen_name=screen_name, count=how_many_tweets, include_rts=False, exclude_replies=False)
+                    except twitter.error.TwitterError as err:
+                        return ["Error: " + parse_twitter_error(err)]
+
+                    if len(replies) > 0:
+                        return clean_timeline(replies)
+                    else:
+                        return ["Error: No twitter activity to display for " + screen_name + "\n"]
 
 def parse_twitter_error(twitter_error=None):
     error_dict = twitter_error.message[0]
     return error_dict.get('message')
+
+def clean_timeline(timeline=None):
+    cleaned_timeline = []          
+    for tweet in timeline:
+        cleaned_timeline.append('{screenname}: {text}\n\n <3 {favorites}   {time}\n\n\n'.format(screenname=screen_name.encode('utf-8'), text=tweet.text.encode('utf-8'), favorites=tweet.favorite_count, time=tweet.created_at))
+        return cleaned_timeline
 
 if __name__ == "__main__":
     api = twitter.Api(consumer_key=os.getenv('CON_KEY'),
