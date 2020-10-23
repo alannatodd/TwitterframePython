@@ -11,56 +11,38 @@ api = twitter.Api(consumer_key=os.getenv('CON_KEY'),
                   access_token_secret=os.getenv('ACCESS_SECRET'))
 
 
-def get_tweets(api=None, screen_name=None, howManyTweets=None):
-    listLen = 0
-    pullCount = howManyTweets
+def get_tweets(api=None, screen_name=None, how_many_tweets=None):
+    list_len = 0
+    pull_count = how_many_tweets
     try:
-        checkUserExists = api.GetUser(screen_name=screen_name,return_json=True)
+        check_user_exists = api.GetUser(screen_name=screen_name,return_json=True)
     except twitter.error.TwitterError as err:
-        return ["Error: " + parseTwitterError(err)]
+        return ["Error: " + parse_twitter_error(err)]
 
-    checkTimeline = ''
+    check_timeline = ''
     try:
-        checkTimeline = api.GetUserTimeline(screen_name=screen_name, count=200)
+        check_timeline = api.GetUserTimeline(screen_name=screen_name, count=200)
     except twitter.error.TwitterError as err:
-        return ["Error: " + parseTwitterError(err)]
+        return ["Error: " + parse_twitter_error(err)]
 
-    if (len(checkTimeline) == 0):
+    if (len(check_timeline) == 0):
         return ["Error: This user has no tweets."]
     else:
-        while listLen == 0:
-            timeline = api.GetUserTimeline(screen_name=screen_name, count=pullCount, include_rts=False, exclude_replies=True)
-            listLen = len(timeline)
-            if listLen > 0:
-                cleanedTimeline = []
+        while list_len == 0:
+            timeline = api.GetUserTimeline(screen_name=screen_name, count=pull_count, include_rts=False, exclude_replies=True)
+            list_len = len(timeline)
+            if list_len > 0:
+                cleaned_timeline = []
                 for tweet in timeline:
-                    parsedLine = ('{screenname}: {text}\n\n <3 {favorites}   {time}\n\n\n'.format(screenname=screen_name.encode('utf-8'), text=tweet.text.encode('utf-8'), favorites=tweet.favorite_count, time=tweet.created_at))
-                    cleanedTimeline.append(parsedLine)
-                return cleanedTimeline
+                    parsed_line = ('{screenname}: {text}\n\n <3 {favorites}   {time}\n\n\n'.format(screenname=screen_name.encode('utf-8'), text=tweet.text.encode('utf-8'), favorites=tweet.favorite_count, time=tweet.created_at))
+                    cleaned_timeline.append(parsed_line)
+                return cleaned_timeline
             else:
                 return ["Error: User has no original tweets."]
 
-    #earliest_tweet = min(timeline, key=lambda x: x.id).id
-    #print("getting tweets before:", earliest_tweet)
-        #print(parsedLine)
-    #while True:
-        #tweets = api.GetUserTimeline(
-        #    screen_name=screen_name, max_id=earliest_tweet, count=200
-        #)
-        #new_earliest = min(tweets, key=lambda x: x.id).id
-
-        #if not tweets or new_earliest == earliest_tweet:
-        #    break
-        #else:
-        #    earliest_tweet = new_earliest
-        #    print("getting tweets before:", earliest_tweet)
-        #    timeline += tweets
-
-    #return cleanedTimeline
-
-def parseTwitterError(twitterError=None):
-    errorDict = twitterError.message[0]
-    return errorDict.get('message')
+def parse_twitter_error(twitter_error=None):
+    error_dict = twitter_error.message[0]
+    return error_dict.get('message')
 
 if __name__ == "__main__":
     api = twitter.Api(consumer_key=os.getenv('CON_KEY'),
@@ -71,13 +53,13 @@ if __name__ == "__main__":
     if not screen_name.startswith('@'):
         screen_name = "@" + screen_name
     print("Getting latest tweet from " + screen_name + "...\n")
-    cleanedTimeline = get_tweets(api=api, screen_name=screen_name, howManyTweets=1)
+    cleaned_timeline = get_tweets(api=api, screen_name=screen_name, how_many_tweets=1)
 
 
     with open('testfiles/timeline.txt', 'w+') as f:
         #f.write(timeline)
-        for tweet in cleanedTimeline:
+        for tweet in cleaned_timeline:
             f.write(tweet)
 
-    for tweet in cleanedTimeline:
+    for tweet in cleaned_timeline:
         print(tweet)
